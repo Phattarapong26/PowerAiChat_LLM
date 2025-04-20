@@ -88,6 +88,5 @@ MIT License - ดูรายละเอียดเพิ่มเติมไ
 
 ## 📞 การติดต่อ
 
-- Email: support@chatai.com
-- Website: https://chatai.com
+- Email: phattarapong.phe@spumail.net
 - Documentation: https://docs.chatai.com
