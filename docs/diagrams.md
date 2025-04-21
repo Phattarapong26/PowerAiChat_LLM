@@ -12,13 +12,17 @@ graph TB
     subgraph Backend
         FastAPI[FastAPI Server]
         Chat[Chat Processor]
-        Vector[Vector Store]
+        Vector[Vector Search]
         Lang[Language Models]
+        User[User Management]
     end
 
     subgraph Database
         MongoDB[(MongoDB)]
-        VectorDB[(Vector DB)]
+        Collections[Collections]
+        Properties[Properties]
+        Users[Users]
+        ChatRooms[Chat Rooms]
     end
 
     UI --> State
@@ -27,9 +31,14 @@ graph TB
     FastAPI --> Chat
     FastAPI --> Vector
     FastAPI --> Lang
+    FastAPI --> User
     Chat --> MongoDB
-    Vector --> VectorDB
-    Lang --> MongoDB
+    Vector --> MongoDB
+    User --> MongoDB
+    MongoDB --> Collections
+    Collections --> Properties
+    Collections --> Users
+    Collections --> ChatRooms
 ```
 
 ## 2. Flow การทำงานหลัก (Main Workflow)
@@ -37,14 +46,14 @@ graph TB
 sequenceDiagram
     participant User as ผู้ใช้
     participant UI as หน้าต่างการสนทนา
-    participant API as API Server
+    participant API as FastAPI Server
     participant Chat as Chat Processor
     participant Vector as Vector Search
     participant Lang as Language Models
-    participant DB as Database
+    participant DB as MongoDB
 
     User->>UI: ส่งคำถาม
-    UI->>API: ส่งคำขอ
+    UI->>API: POST /api/chat
     API->>Chat: ประมวลผลคำถาม
     Chat->>Vector: ค้นหาอสังหาริมทรัพย์
     Vector->>DB: ค้นหาข้อมูล
@@ -66,19 +75,18 @@ graph TD
     C --> E{ตรวจสอบข้อมูล}
     E -->|ไม่ถูกต้อง| C
     E -->|ถูกต้อง| F[สร้างบัญชี]
-    F --> G[บันทึกลง DB]
-    G --> H[สร้าง Token]
-    H --> I[เข้าสู่ระบบ]
-    D --> I
-    I --> J[ใช้งานระบบ]
+    F --> G[บันทึกลง MongoDB]
+    G --> H[เข้าสู่ระบบ]
+    D --> H
+    H --> I[ใช้งานระบบ]
 ```
 
 ## 4. Flow การค้นหาอสังหาริมทรัพย์ (Property Search Flow)
 ```mermaid
 graph TD
-    A[รับคำค้นหา] --> B[วิเคราะห์ภาษา]
-    B --> C[แปลงเป็น Vector]
-    C --> D[ค้นหาใน Vector DB]
+    A[รับคำค้นหา] --> B[แปลงเป็น lowercase]
+    B --> C[ดึงข้อมูลจาก MongoDB]
+    C --> D[คำนวณความเกี่ยวข้อง]
     D --> E[จัดอันดับผลลัพธ์]
     E --> F[กรองผลลัพธ์]
     F --> G[ส่งผลลัพธ์]
@@ -89,42 +97,43 @@ graph TD
 graph TD
     A[รับคำถาม] --> B[วิเคราะห์อารมณ์]
     B --> C[เลือกรูปแบบการตอบ]
-    C --> D[สร้างคำตอบ]
-    D --> E[แปลภาษา]
+    C --> D[สร้างคำตอบจาก Template]
+    D --> E[เพิ่มข้อมูลอสังหาริมทรัพย์]
     E --> F[ส่งคำตอบ]
 ```
 
 ## 6. โครงสร้างฐานข้อมูล (Database Schema)
 ```mermaid
 erDiagram
-    USERS ||--o{ CHAT_HISTORY : has
+    USERS ||--o{ CHAT_ROOMS : has
     USERS {
         string id
+        string name
         string email
         string password
-        string name
         datetime created_at
+        datetime updated_at
     }
-    CHAT_HISTORY {
+    CHAT_ROOMS {
         string id
         string user_id
-        string message
-        string response
-        datetime timestamp
+        array messages
+        datetime created_at
     }
-    PROPERTIES ||--o{ PROPERTY_VECTORS : has
     PROPERTIES {
         string id
-        string title
-        string description
-        float price
-        string location
-        json features
-    }
-    PROPERTY_VECTORS {
-        string id
-        string property_id
-        vector embedding
+        string file_id
+        string ประเภท
+        string โครงการ
+        string ราคา
+        string รูปแบบ
+        string รูป
+        string ตำแหน่ง
+        string สถานศึกษา
+        string สถานีรถไฟฟ้า
+        string ห้างสรรพสินค้า
+        string โรงพยาบาล
+        string สนามบิน
     }
 ```
 
@@ -133,10 +142,11 @@ erDiagram
 graph TD
     A[อัปโหลดไฟล์] --> B{ตรวจสอบไฟล์}
     B -->|ไม่ถูกต้อง| C[แจ้งเตือน]
-    B -->|ถูกต้อง| D[อ่านข้อมูล]
-    D --> E[แปลงเป็น Vector]
-    E --> F[บันทึกลง DB]
-    F --> G[แจ้งเตือนสำเร็จ]
+    B -->|ถูกต้อง| D[อ่านข้อมูล CSV/Excel]
+    D --> E[ตรวจสอบคอลัมน์]
+    E --> F[แปลงเป็น JSON]
+    F --> G[บันทึกลง MongoDB]
+    G --> H[แจ้งเตือนสำเร็จ]
 ```
 
 ## 8. Flow การจัดการเซสชัน (Session Management Flow)
@@ -144,17 +154,17 @@ graph TD
 sequenceDiagram
     participant User as ผู้ใช้
     participant App as แอปพลิเคชัน
-    participant API as API Server
-    participant DB as Database
+    participant API as FastAPI Server
+    participant DB as MongoDB
 
     User->>App: เข้าสู่ระบบ
-    App->>API: ส่งข้อมูล
-    API->>DB: ตรวจสอบ
+    App->>API: POST /api/login
+    API->>DB: ตรวจสอบผู้ใช้
     DB-->>API: ยืนยันตัวตน
-    API-->>App: ส่ง Token
-    App->>App: เก็บ Token
-    App->>API: ส่ง Token กับทุกคำขอ
-    API->>API: ตรวจสอบ Token
+    API-->>App: ส่งข้อมูลผู้ใช้
+    App->>App: เก็บข้อมูลผู้ใช้
+    App->>API: ส่งคำขอพร้อม session_id
+    API->>API: ตรวจสอบ session
     API-->>App: ตอบสนองคำขอ
 ```
 
@@ -162,8 +172,8 @@ sequenceDiagram
 ```mermaid
 graph TD
     A[รับข้อความ] --> B{ตรวจสอบภาษา}
-    B -->|ไทย| C[แปลเป็นอังกฤษ]
-    B -->|อังกฤษ| D[แปลเป็นไทย]
+    B -->|ไทย| C[ใช้ Template ไทย]
+    B -->|อังกฤษ| D[ใช้ Template อังกฤษ]
     C --> E[ส่งข้อความ]
     D --> E
 ```
@@ -172,11 +182,11 @@ graph TD
 ```mermaid
 graph TD
     A[เกิดข้อผิดพลาด] --> B{ประเภทข้อผิดพลาด}
-    B -->|การเชื่อมต่อ| C[ลองเชื่อมต่อใหม่]
-    B -->|การยืนยันตัวตน| D[เข้าสู่ระบบใหม่]
-    B -->|ข้อมูลไม่ถูกต้อง| E[แจ้งเตือนผู้ใช้]
+    B -->|การเชื่อมต่อ| C[บันทึก Log]
+    B -->|การยืนยันตัวตน| D[ส่งข้อความแจ้งเตือน]
+    B -->|ข้อมูลไม่ถูกต้อง| E[ส่งข้อความแจ้งเตือน]
     B -->|ระบบ| F[บันทึก Log]
-    C --> G[ส่งคำขอใหม่]
+    C --> G[ส่งข้อความแจ้งเตือน]
     D --> H[กลับไปหน้า Login]
     E --> I[แสดงข้อความ]
     F --> J[แจ้งทีมพัฒนา]
