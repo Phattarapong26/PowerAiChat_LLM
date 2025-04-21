@@ -9,7 +9,7 @@
 
 ระบบที่ปรึกษาอสังหาริมทรัพย์อัจฉริยะ ที่ให้บริการทั้งภาษาไทยและอังกฤษ
 
-[เริ่มต้นใช้งาน](#installation) • [คุณสมบัติ](#features) • [เอกสาร](#documentation) • [ติดต่อเรา](#support)
+[เริ่มต้นใช้งาน](docs/user-guide.md) • [คุณสมบัติ](docs/detailsystem.md) • [เอกสาร](docs/index.md) • [ติดต่อเรา](#support)
 
 </div>
 
