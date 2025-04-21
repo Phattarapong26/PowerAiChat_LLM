@@ -15,6 +15,7 @@ export interface PropertyQuery {
   timestamp?: number;
   get_history?: boolean;
   language?: string;
+  user_id?: string;
 }
 
 export interface ChatResponse {
@@ -22,6 +23,12 @@ export interface ChatResponse {
   session_id?: string;
   chat_room_id?: string;
   properties?: Array<Record<string, string>>;
+  messages?: Array<{
+    role: "user" | "assistant";
+    content: string;
+    timestamp: number;
+    properties?: Array<Record<string, string>>;
+  }>;
 }
 
 export interface ChatHistory {
@@ -42,6 +49,26 @@ export interface UploadResponse {
 
 export interface ConsultationStyles {
   [key: string]: string;
+}
+
+// เพิ่ม interface สำหรับการลงทะเบียนและเข้าสู่ระบบ
+export interface UserRegisterRequest {
+  name: string;
+  email: string;
+  password: string;
+}
+
+export interface UserLoginRequest {
+  email: string;
+  password: string;
+}
+
+export interface UserResponse {
+  id: string;
+  name: string;
+  email: string;
+  success: boolean;
+  message: string;
 }
 
 /**
@@ -65,6 +92,12 @@ export const sendChatMessage = async (queryData: PropertyQuery): Promise<ChatRes
     // เพิ่มเวลาปัจจุบันในรูปแบบที่ backend เข้าใจได้
     adjustedQueryData.timestamp = Date.now();
     
+    // เพิ่ม user_id ถ้ามี
+    const user = JSON.parse(localStorage.getItem("property_ai_current_user") || "{}");
+    if (user && user.id) {
+      adjustedQueryData.user_id = user.id;
+    }
+    
     const response = await fetch(`${API_BASE_URL}/chat`, {
       method: 'POST',
       headers: {
@@ -87,8 +120,8 @@ export const sendChatMessage = async (queryData: PropertyQuery): Promise<ChatRes
     
     return data;
   } catch (error) {
-    console.error('Error sending chat message:', error);
-    throw new Error('Failed to send message. Please try again.');
+    console.error("Error sending chat message:", error);
+    throw new Error("Failed to send message. Please try again.");
   }
 };
 
@@ -108,7 +141,8 @@ export const getChatRoomHistory = async (chatRoomId: string): Promise<ChatHistor
         chat_room_id: chatRoomId,
         query: '',  // ส่ง query ว่างเพื่อบ่งชี้ว่าต้องการเรียกประวัติ
         get_history: true,  // flag สำหรับบอก backend ว่าต้องการดึงประวัติ
-        consultation_style: localStorage.getItem("consultationStyle") || "formal"
+        consultation_style: localStorage.getItem("consultationStyle") || "formal",
+        user_id: JSON.parse(localStorage.getItem("user") || "{}")?.id
       }),
     });
 
@@ -130,7 +164,10 @@ export const getChatRoomHistory = async (chatRoomId: string): Promise<ChatHistor
       data.messages = [];
     }
     
-    return data;
+    return {
+      chat_room_id: chatRoomId,
+      messages: data.messages
+    };
   } catch (error) {
     console.error('Error fetching chat history:', error);
     // สร้าง empty history object แทนที่จะ throw error
@@ -209,88 +246,99 @@ export const saveChatHistory = async (chatRoomId: string, messages: Array<{
   try {
     console.log("เรียกใช้ API saveChatHistory:", chatRoomId);
     
-    // ลองวิธีใหม่โดยใช้ endpoint /chat
-    // ดึงข้อความล่าสุด (คู่สุดท้าย) เพื่อส่งไปให้ backend บันทึกโดยตรง
-    if (messages.length >= 2) {
-      const lastUserMsg = messages.slice().reverse().find(msg => msg.role === "user");
-      const lastAssistantMsg = messages.slice().reverse().find(msg => msg.role === "assistant");
-      
-      if (lastUserMsg && lastAssistantMsg) {
-        console.log("ส่งข้อความล่าสุดเพื่อบันทึกประวัติ");
-        
-        const response = await fetch(`${API_BASE_URL}/chat`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ 
-            session_id: chatRoomId,
-            chat_room_id: chatRoomId,
-            query: lastUserMsg.content,
-            consultation_style: localStorage.getItem("consultationStyle") || "formal",
-            // ส่งข้อความทั้งหมดไปด้วยเผื่อ backend ต้องการ
-            history: messages.map(msg => ({
-              role: msg.role,
-              content: msg.content,
-              timestamp: msg.timestamp
-            }))
-          }),
-        });
-        
-        console.log("สถานะการตอบกลับ:", response.status, response.statusText);
-        
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.error("ข้อความผิดพลาด:", errorText);
-          return false;
-        }
-        
-        console.log("บันทึกประวัติสำเร็จ");
-        return true;
-      }
-    }
+    // ดึง user_id จาก localStorage
+    const user = JSON.parse(localStorage.getItem("user") || "{}");
+    const userId = user?.id;
     
-    // ถ้าไม่มีข้อความล่าสุด หรือมีข้อความน้อยกว่า 2 ข้อความ
-    // ให้ลองส่งแบบเดิม
-    const apiUrl = `${API_BASE_URL}/chat`;
-    
-    // สร้างข้อมูลเพื่อส่งไปยัง API
-    const payload = { 
-      session_id: chatRoomId,
-      chat_room_id: chatRoomId,
-      query: "save_history",
-      // ทดลองส่งแบบต่างๆ
-      action: "save_history",
-      command: "save",
-      consultation_style: localStorage.getItem("consultationStyle") || "formal",
-      messages: messages 
-    };
-    
-    console.log("ส่งข้อมูลเพื่อบันทึกประวัติ:", JSON.stringify(payload).substring(0, 500) + "...");
-    
-    const response = await fetch(apiUrl, {
+    // ส่งข้อมูลไปยัง API
+    const response = await fetch(`${API_BASE_URL}/save_history`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(payload),
+      body: JSON.stringify({
+        chat_room_id: chatRoomId,
+        messages: messages,
+        user_id: userId
+      }),
     });
-
-    console.log("สถานะการตอบกลับ:", response.status, response.statusText);
     
     if (!response.ok) {
       const errorText = await response.text();
       console.error("ข้อความผิดพลาด:", errorText);
-      throw new Error(`API error: ${response.status} - ${errorText}`);
+      return false;
     }
-
-    const responseData = await response.json();
-    console.log("ข้อมูลตอบกลับ:", responseData);
     
-    return true;
+    const data = await response.json();
+    console.log("บันทึกประวัติสำเร็จ:", data);
+    return data.success === true;
   } catch (error) {
     console.error('Error saving chat history:', error);
     // ไม่ throw error เพื่อไม่ให้กระทบกับ UX
     return false;
+  }
+};
+
+/**
+ * ลงทะเบียนผู้ใช้ใหม่
+ */
+export const registerUser = async (userData: UserRegisterRequest): Promise<UserResponse> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/register`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(userData),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`API error: ${response.status} - ${errorText}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error registering user:', error);
+    return {
+      id: "",
+      name: "",
+      email: "",
+      success: false,
+      message: "เกิดข้อผิดพลาดในการลงทะเบียน กรุณาลองใหม่อีกครั้ง"
+    };
+  }
+};
+
+/**
+ * เข้าสู่ระบบ
+ */
+export const loginUser = async (userData: UserLoginRequest): Promise<UserResponse> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(userData),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`API error: ${response.status} - ${errorText}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error logging in user:', error);
+    return {
+      id: "",
+      name: "",
+      email: "",
+      success: false,
+      message: "เกิดข้อผิดพลาดในการเข้าสู่ระบบ กรุณาลองใหม่อีกครั้ง"
+    };
   }
 };

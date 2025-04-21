@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { ChatSession, ChatMessage } from "@/types/chat";
 import { useAuth } from "@/context/AuthContext";
+import { saveChatHistory } from "@/frontend/api";
 
 const CHAT_STORAGE_KEY = "property_ai_chat_sessions";
 
@@ -54,7 +55,26 @@ export function useChats() {
     
     // Save all sessions
     localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(allSessions));
-  }, [chatSessions, user]);
+    
+    // บันทึกข้อมูลห้องแชทลง MongoDB ผ่าน API
+    if (chatSessions.length > 0) {
+      // บันทึกห้องแชทล่าสุดที่ใช้งาน
+      const currentSession = chatSessions.find(session => session.id === currentChatId);
+      if (currentSession && currentSession.messages.length > 0) {
+        saveChatHistory(currentSession.id, currentSession.messages)
+          .then(success => {
+            if (success) {
+              console.log(`บันทึกประวัติห้องแชท ${currentSession.id} สำเร็จ`);
+            } else {
+              console.error(`ไม่สามารถบันทึกประวัติห้องแชท ${currentSession.id}`);
+            }
+          })
+          .catch(error => {
+            console.error(`เกิดข้อผิดพลาดในการบันทึกประวัติห้องแชท: ${error}`);
+          });
+      }
+    }
+  }, [chatSessions, user, currentChatId]);
   
   // Create a new chat session
   const createChatSession = () => {
@@ -110,6 +130,19 @@ export function useChats() {
           if (session.messages.length === 0 && message.role === "user") {
             updatedSession.title = message.content.slice(0, 30) + (message.content.length > 30 ? "..." : "");
           }
+          
+          // บันทึกข้อความใหม่ลง MongoDB ทันที
+          saveChatHistory(chatId, [newMessage])
+            .then(success => {
+              if (success) {
+                console.log(`บันทึกข้อความใหม่ในห้องแชท ${chatId} สำเร็จ`);
+              } else {
+                console.error(`ไม่สามารถบันทึกข้อความใหม่ในห้องแชท ${chatId}`);
+              }
+            })
+            .catch(error => {
+              console.error(`เกิดข้อผิดพลาดในการบันทึกข้อความใหม่: ${error}`);
+            });
           
           return updatedSession;
         }

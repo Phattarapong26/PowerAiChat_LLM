@@ -1,82 +1,192 @@
-# โครงสร้างและ Logic ของ ChatAI
+# โครงสร้างระบบ AI Property Consultant
 
-## 1. โครงสร้างระบบ
+## 1. ภาพรวมสถาปัตยกรรม
 
-### 1.1 Frontend
-- **React + TypeScript**
-  - ใช้ Vite เป็น build tool
-  - Tailwind CSS สำหรับ UI
-  - ESLint และ Prettier สำหรับ code quality
+### 1.1 Frontend Layer
+- React + TypeScript
+- Vite
+- Tailwind CSS
+- Context API
+- Axios
 
-### 1.2 Backend
-- **Python + FastAPI**
-  - MongoDB เป็นฐานข้อมูล
-  - Sentence Transformers สำหรับ AI
-  - Hugging Face Transformers
+### 1.2 Backend Layer
+- FastAPI
+- Python 3.8+
+- MongoDB
+- Vector Search
+- Language Models
 
-## 2. โครงสร้างโค้ด
+### 1.3 Database Layer
+- MongoDB
+- Vector Store
+- Session Storage
+- User Management
 
-### 2.1 Frontend Structure
-```
-src/
-├── components/     # React components
-├── pages/         # หน้าเว็บต่างๆ
-├── services/      # API services
-├── utils/         # utility functions
-└── types/         # TypeScript types
-```
+## 2. องค์ประกอบหลัก
 
-### 2.2 Backend Structure
-```
-src/backend/
-├── api/           # API endpoints
-├── models/        # database models
-├── services/      # business logic
-├── utils/         # utility functions
-└── config/        # configuration files
-```
+### 2.1 Frontend Components
+1. **Chat Interface**
+   - Chat Window
+   - Message Display
+   - Input Controls
+   - Style Selector
 
-## 3. Logic การทำงาน
+2. **Property Display**
+   - Property Cards
+   - Property Details
+   - Image Gallery
+   - Location Info
 
-### 3.1 การประมวลผลข้อความ
-1. รับข้อความจากผู้ใช้
-2. แปลงเป็นเวกเตอร์
-3. ค้นหาข้อมูลที่เกี่ยวข้อง
-4. สร้างคำตอบ
-5. ส่งกลับไปยังผู้ใช้
+3. **User Management**
+   - Registration Form
+   - Login Interface
+   - Profile Management
+   - History Viewer
 
-### 3.2 การวิเคราะห์ผู้ใช้
-1. เก็บข้อมูลการใช้งาน
-2. วิเคราะห์พฤติกรรม
-3. สร้างโปรไฟล์
-4. ปรับแต่งการแนะนำ
+4. **File Upload**
+   - File Selection
+   - Progress Indicator
+   - Validation Display
+   - Status Updates
 
-### 3.3 การจัดการข้อมูล
-1. เก็บข้อมูลใน MongoDB
-2. อัพเดทข้อมูลอัตโนมัติ
-3. ทำความสะอาดข้อมูล
-4. สำรองข้อมูล
+### 2.2 Backend Services
+1. **FastAPI Application**
+   - API Endpoints
+   - Request Handling
+   - Response Generation
+   - Error Management
 
-## 4. การเชื่อมต่อระบบ
+2. **Chat Processing**
+   - Message Analysis
+   - Context Management
+   - Response Generation
+   - Style Adaptation
 
-### 4.1 Frontend-Backend
-- REST API
-- WebSocket สำหรับ real-time
-- JWT สำหรับ authentication
+3. **Vector Search**
+   - Query Processing
+   - Similarity Calculation
+   - Result Ranking
+   - Property Matching
 
-### 4.2 Backend-Database
-- MongoDB connection
-- Connection pooling
-- Error handling
+4. **User Services**
+   - Authentication
+   - Session Management
+   - Profile Handling
+   - History Tracking
 
-## 5. ความปลอดภัย
+### 2.3 Database Structure
+1. **Properties Collection**
+   ```json
+   {
+     "_id": "ObjectId",
+     "ประเภท": "string",
+     "โครงการ": "string",
+     "ราคา": "string",
+     "รูปแบบ": "string",
+     "ตำแหน่ง": "string",
+     "สถานศึกษา": "string",
+     "สถานีรถไฟฟ้า": "string",
+     "ห้างสรรพสินค้า": "string",
+     "โรงพยาบาล": "string"
+   }
+   ```
 
-### 5.1 การป้องกันข้อมูล
-- การเข้ารหัสข้อมูล
-- การตรวจสอบสิทธิ์
-- การป้องกัน SQL Injection
+2. **Users Collection**
+   ```json
+   {
+     "_id": "ObjectId",
+     "name": "string",
+     "email": "string",
+     "password": "string",
+     "created_at": "datetime",
+     "updated_at": "datetime"
+   }
+   ```
 
-### 5.2 การจัดการ Session
-- Session management
-- Token-based authentication
-- Rate limiting 
+3. **Chat Rooms Collection**
+   ```json
+   {
+     "_id": "ObjectId",
+     "chat_room_id": "string",
+     "user_id": "string",
+     "messages": [
+       {
+         "role": "string",
+         "content": "string",
+         "timestamp": "number"
+       }
+     ],
+     "created_at": "datetime"
+   }
+   ```
+
+## 3. การทำงานร่วมกัน
+
+### 3.1 การสื่อสารระหว่าง Layers
+1. **Frontend ↔ Backend**
+   - RESTful API
+   - HTTP Requests
+   - JSON Data Format
+   - Error Handling
+
+2. **Backend ↔ Database**
+   - MongoDB Driver
+   - Connection Pooling
+   - Query Optimization
+   - Data Validation
+
+### 3.2 การจัดการข้อมูล
+1. **Data Flow**
+   - User Input → Frontend
+   - API Request → Backend
+   - Database Query → MongoDB
+   - Response → Frontend
+   - Display → User
+
+2. **State Management**
+   - Context API
+   - Local Storage
+   - Session Management
+   - Cache Control
+
+## 4. การรักษาความปลอดภัย
+
+### 4.1 Authentication
+- JWT Tokens
+- Session Management
+- Password Hashing
+- Access Control
+
+### 4.2 Data Protection
+- HTTPS
+- API Key
+- Input Validation
+- XSS Prevention
+
+## 5. การขยายระบบ
+
+### 5.1 Scalability
+- Horizontal Scaling
+- Load Balancing
+- Caching
+- Database Sharding
+
+### 5.2 Maintainability
+- Modular Design
+- Clean Architecture
+- Documentation
+- Version Control
+
+## 6. การติดตามและการแก้ไขปัญหา
+
+### 6.1 Monitoring
+- Error Logging
+- Performance Metrics
+- User Analytics
+- System Health
+
+### 6.2 Debugging
+- Error Tracking
+- Log Analysis
+- Performance Profiling
+- Issue Resolution 

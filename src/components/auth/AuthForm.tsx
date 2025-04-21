@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -8,6 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Eye, EyeOff, Mail, Lock, User } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
+import { registerUser, loginUser } from "@/frontend/api";
+import { useAuth } from "@/context/AuthContext";
 
 // Simple mock user storage for demo purposes
 const USERS_STORAGE_KEY = "property_ai_users";
@@ -25,6 +26,7 @@ export function AuthForm() {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   // Login form state
   const [loginEmail, setLoginEmail] = useState("");
@@ -37,87 +39,93 @@ export function AuthForm() {
 
   const toggleShowPassword = () => setShowPassword(!showPassword);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
-    setTimeout(() => {
-      const usersJson = localStorage.getItem(USERS_STORAGE_KEY);
-      const users: User[] = usersJson ? JSON.parse(usersJson) : [];
+    try {
+      // เรียกใช้ API สำหรับเข้าสู่ระบบ
+      const response = await loginUser({
+        email: loginEmail,
+        password: loginPassword
+      });
       
-      const user = users.find(u => u.email === loginEmail && u.password === loginPassword);
-      
-      if (user) {
-        // Store current user
-        localStorage.setItem(CURRENT_USER_KEY, JSON.stringify({
-          id: user.id,
-          email: user.email,
-          name: user.name
-        }));
+      if (response.success) {
+        // ใช้ useAuth hook เพื่อเข้าสู่ระบบ
+        login({
+          id: response.id,
+          name: response.name,
+          email: response.email
+        });
         
         toast({
           title: "เข้าสู่ระบบสำเร็จ",
-          description: `ยินดีต้อนรับกลับ ${user.name}`,
+          description: `ยินดีต้อนรับกลับ ${response.name}`,
         });
         
         navigate("/");
       } else {
         toast({
           title: "เข้าสู่ระบบไม่สำเร็จ",
-          description: "อีเมลหรือรหัสผ่านไม่ถูกต้อง",
+          description: response.message,
           variant: "destructive",
         });
       }
-      
+    } catch (error) {
+      console.error("Error logging in:", error);
+      toast({
+        title: "เกิดข้อผิดพลาด",
+        description: "ไม่สามารถเข้าสู่ระบบได้ กรุณาลองใหม่อีกครั้ง",
+        variant: "destructive",
+      });
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
-  const handleRegister = (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
-    setTimeout(() => {
-      const usersJson = localStorage.getItem(USERS_STORAGE_KEY);
-      const users: User[] = usersJson ? JSON.parse(usersJson) : [];
-      
-      // Check if email already exists
-      if (users.some(u => u.email === registerEmail)) {
-        toast({
-          title: "ลงทะเบียนไม่สำเร็จ",
-          description: "อีเมลนี้ถูกใช้งานแล้ว กรุณาใช้อีเมลอื่น",
-          variant: "destructive",
-        });
-        setIsLoading(false);
-        return;
-      }
-      
-      // Create new user
-      const newUser: User = {
-        id: crypto.randomUUID(),
-        email: registerEmail,
+    try {
+      // เรียกใช้ API สำหรับลงทะเบียน
+      const response = await registerUser({
         name: registerName,
-        password: registerPassword,
-      };
-      
-      users.push(newUser);
-      localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(users));
-      
-      // Log user in
-      localStorage.setItem(CURRENT_USER_KEY, JSON.stringify({
-        id: newUser.id,
-        email: newUser.email,
-        name: newUser.name
-      }));
-      
-      toast({
-        title: "ลงทะเบียนสำเร็จ",
-        description: "ยินดีต้อนรับสู่ระบบ AI Property Guru",
+        email: registerEmail,
+        password: registerPassword
       });
       
-      navigate("/");
+      if (response.success) {
+        // ใช้ useAuth hook เพื่อเข้าสู่ระบบหลังจากลงทะเบียน
+        login({
+          id: response.id,
+          name: response.name,
+          email: response.email
+        });
+        
+        toast({
+          title: "ลงทะเบียนสำเร็จ",
+          description: "ยินดีต้อนรับสู่ระบบ AI Property Guru",
+        });
+        
+        navigate("/");
+      } else {
+        toast({
+          title: "ลงทะเบียนไม่สำเร็จ",
+          description: response.message,
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Error registering:", error);
+      toast({
+        title: "เกิดข้อผิดพลาด",
+        description: "ไม่สามารถลงทะเบียนได้ กรุณาลองใหม่อีกครั้ง",
+        variant: "destructive",
+      });
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   return (

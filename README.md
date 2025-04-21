@@ -1,201 +1,176 @@
-# ChatAI - แอปพลิเคชันแชทอัจฉริยะ
+# AI Property Consultant
 
-แอปพลิเคชันแชทอัจฉริยะที่พัฒนาด้วย React, TypeScript และ Vite สำหรับให้คำปรึกษาด้านอสังหาริมทรัพย์
+## Overview
+AI Property Consultant is an intelligent chatbot system designed to provide real estate consultation services in both Thai and English languages. The system uses advanced natural language processing to understand user queries and provide relevant property information with adjustable conversation styles.
 
-## 🚀 คุณสมบัติหลัก
+## Features
+- Bilingual support (Thai/English)
+- Multiple consultation styles (Formal, Casual, Friendly, Professional)
+- Property search and recommendation
+- User authentication and session management
+- Chat history tracking
+- Property data management via file upload
+- MongoDB integration for data persistence
+- Vector-based semantic search
+- Empathetic response generation
 
-- 💬 การสนทนาอัจฉริยะด้วย AI
-- 🎨 หน้าต่างที่ทันสมัยด้วย Tailwind CSS
-- 📱 รองรับการใช้งานบนทุกอุปกรณ์
-- ⚡ ประสิทธิภาพสูงด้วย Vite
-- 🔄 รองรับการแปลภาษาไทย-อังกฤษ
-- 📊 ระบบวิเคราะห์ผู้ใช้
-- 🔍 ค้นหาอสังหาริมทรัพย์แบบ Vector Search
+## Tech Stack
+- Frontend: React + TypeScript + Vite
+- Backend: FastAPI + Python
+- Database: MongoDB
+- UI Framework: Tailwind CSS
+- State Management: React Context
+- API Integration: Axios
 
-## 📚 เอกสารประกอบ
+## System Requirements
+- Node.js 16+
+- Python 3.8+
+- MongoDB 4.4+
+- npm or yarn package manager
 
-- [คู่มือการใช้งาน](./docs/user-guide.md)
-- [กระบวนการทำงาน](./docs/workflow.md)
-- [โครงสร้างและ Logic](./docs/architecture.md)
-- [รายละเอียดระบบ Backend](./docs/backend-explained.md)
-- [คู่มือการพัฒนา](./docs/detailsystem.md)
-- [อธิบายโค้ด Backend](./docs/backend-code-explained.md)
+## Installation
 
-## 🛠️ การติดตั้ง
-
-### Frontend
+### Backend Setup
+1. Navigate to the backend directory:
 ```bash
-# ติดตั้ง dependencies
-npm install
-
-# รันในโหมด development
-npm run dev
-
-# สร้างไฟล์สำหรับ production
-npm run build
-```
-
-### Backend
-```bash
-# สร้าง virtual environment
-python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
-
-# ติดตั้ง dependencies
 cd src/backend
-pip install -r requirements.txt
-
-# รัน server
-python run.py
 ```
 
-### การตั้งค่าตัวแปรสภาพแวดล้อม
-สร้างไฟล์ `.env` ในโฟลเดอร์ `src/backend`:
+2. Create a virtual environment:
 ```bash
+python -m venv venv
+source venv/bin/activate  # For Unix
+venv\Scripts\activate     # For Windows
+```
+
+3. Install dependencies:
+```bash
+pip install -r requirements.txt
+```
+
+4. Configure MongoDB:
+- Create a `.env` file in the backend directory
+- Add MongoDB connection string:
+```
 MONGODB_URL=mongodb://localhost:27017/AI
 MONGODB_DB=AI
-API_KEY=your_api_key
-MODEL_CONFIG_PATH=config.json
 ```
 
-## 🔧 เทคโนโลยีที่ใช้
+### Frontend Setup
+1. Install dependencies:
+```bash
+npm install
+# or
+yarn install
+```
 
-### Frontend
-- React 18
-- TypeScript
-- Vite
-- Tailwind CSS
-- ESLint
-- Prettier
+2. Configure environment:
+Create `.env` file in the root directory:
+```
+VITE_API_URL=http://localhost:8000
+```
 
-### Backend
-- Python 3.9+
-- FastAPI
-- MongoDB
-- Sentence Transformers
-- Hugging Face Transformers
+## Running the Application
 
-## 📊 ระบบวิเคราะห์ผู้ใช้
+### Start Backend Server
+```bash
+cd src/backend
+uvicorn main:app --reload
+```
 
-ระบบวิเคราะห์ผู้ใช้ของ ChatAI ทำงานดังนี้:
+### Start Frontend Development Server
+```bash
+npm run dev
+# or
+yarn dev
+```
 
-1. **การเก็บข้อมูลผู้ใช้**
-   - เก็บประวัติการสนทนาใน MongoDB
-   - วิเคราะห์ความสนใจจากคำถาม
-   - ดูประวัติการค้นหา
-   - เก็บข้อมูลการใช้งาน เช่น เวลาที่ใช้งาน, ความถี่ในการใช้งาน, ประเภทคำถามที่สนใจ
+## API Endpoints
 
-2. **การวิเคราะห์พฤติกรรม**
-   - วิเคราะห์คำสำคัญจากประวัติการค้นหา
-   - แยกประเภทความสนใจ เช่น สถานที่, ประเภทอสังหาริมทรัพย์, ช่วงราคา, สิ่งอำนวยความสะดวก
-   - สร้างโปรไฟล์ผู้ใช้ที่แสดงความสนใจหลัก
+### Chat API
+- POST `/api/chat`
+  - Process user queries and return property recommendations
+  - Supports conversation style and language selection
 
-3. **การแนะนำอสังหาริมทรัพย์**
-   - แนะนำอสังหาริมทรัพย์ที่เกี่ยวข้องกับความสนใจของผู้ใช้
-   - ใช้ข้อมูลจากการวิเคราะห์พฤติกรรม
-   - แสดงข้อมูลที่เกี่ยวข้อง เช่น ราคา สถานที่ตั้ง
-   - ปรับแต่งการแนะนำตามพฤติกรรมผู้ใช้
+### User Management
+- POST `/api/register`
+  - User registration
+- POST `/api/login`
+  - User authentication
 
-## 🤖 การประมวลผล AI
+### Data Management
+- POST `/api/upload`
+  - Upload property data via CSV/Excel
+- GET `/api/styles`
+  - Get available consultation styles
 
-### การแปลงข้อความเป็นเวกเตอร์
-1. **กระบวนการแปลง**
-   - ใช้โมเดล `sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2`
-   - แปลงข้อความภาษาไทยและอังกฤษเป็นเวกเตอร์ 384 มิติ
-   - เก็บเวกเตอร์ใน MongoDB สำหรับการค้นหาอย่างรวดเร็ว
+### Chat History
+- POST `/api/save_history`
+  - Save chat history
+- GET `/api/chat` (with get_history=true)
+  - Retrieve chat history
 
-2. **การใช้งานเวกเตอร์**
-   - ใช้สำหรับค้นหาอสังหาริมทรัพย์ที่เกี่ยวข้องกับคำถาม
-   - คำนวณความคล้ายคลึงระหว่างเวกเตอร์คำถามและเวกเตอร์อสังหาริมทรัพย์
-   - ใช้เกณฑ์ความคล้ายคลึง (Similarity Threshold) ที่ 0.1
-   - แสดงผลลัพธ์สูงสุด 5 รายการ
+## Project Structure
+```
+.
+├── src/
+│   ├── backend/
+│   │   ├── main.py              # FastAPI application
+│   │   ├── mongodb_manager.py   # Database operations
+│   │   ├── language_models.py   # Response generation
+│   │   ├── vector_store.py      # Semantic search
+│   │   ├── config.py           # Configuration
+│   │   └── requirements.txt    # Python dependencies
+│   ├── frontend/
+│   │   ├── api.ts             # API integration
+│   │   └── components/        # React components
+│   └── types/                 # TypeScript types
+├── package.json
+└── README.md
+```
 
-### ระบบค้นหาแบบ Vector Search
-1. **การทำงานของ Vector Search**
-   - รับคำถามจากผู้ใช้
-   - แปลงคำถามเป็นเวกเตอร์
-   - ค้นหาเวกเตอร์ที่มีความคล้ายคลึงสูงในฐานข้อมูล
-   - คืนค่าอสังหาริมทรัพย์ที่เกี่ยวข้อง
+## Key Components
 
-2. **การปรับแต่งการค้นหา**
-   - ปรับเกณฑ์ความคล้ายคลึงตามความต้องการ
-   - เพิ่มน้ำหนักให้กับคำสำคัญบางคำ
-   - รองรับการค้นหาแบบ Fuzzy Match
-   - จำกัดจำนวนผลลัพธ์ที่แสดง
+### Backend Components
+1. FastAPI Application (`main.py`)
+   - API endpoints and request handling
+   - Chat processing and response generation
+   - File upload handling
 
-## 🔌 การจัดการ API
+2. MongoDB Manager (`mongodb_manager.py`)
+   - Database operations
+   - Session management
+   - User data handling
 
-### Endpoints หลัก
-1. **/api/chat**
-   - รับข้อความจากผู้ใช้
-   - ประมวลผลด้วย AI
-   - ส่งคำตอบกลับไปยังผู้ใช้
-   - ตัวอย่างการใช้งาน:
-     ```json
-     {
-       "query": "ต้องการซื้อคอนโดใกล้ BTS",
-       "consultation_style": "formal",
-       "session_id": "optional-session-id"
-     }
-     ```
+3. Language Models (`language_models.py`)
+   - Response generation
+   - Multi-language support
+   - Consultation style management
 
-2. **/api/upload**
-   - อัพโหลดข้อมูลอสังหาริมทรัพย์
-   - รองรับไฟล์ Excel และ CSV
-   - ตรวจสอบความถูกต้องของข้อมูล
-   - ตัวอย่างการใช้งาน:
-     ```
-     POST /api/upload
-     Content-Type: multipart/form-data
-     
-     file: [ไฟล์ Excel หรือ CSV]
-     consultation_style: formal
-     ```
+4. Vector Store (`vector_store.py`)
+   - Semantic search implementation
+   - Property matching
 
-3. **/api/styles**
-   - ดึงรายการสไตล์การให้คำปรึกษา
-   - ตัวอย่างการใช้งาน:
-     ```
-     GET /api/styles
-     ```
+### Frontend Components
+1. API Integration (`api.ts`)
+   - Backend communication
+   - Request/response handling
 
-### ขั้นตอนการประมวลผลข้อความ
-1. **การรับข้อความ**
-   - รับข้อความจาก API endpoint
-   - ตรวจสอบความถูกต้องของข้อมูล
-   - ดึง session_id หรือสร้าง session ใหม่
+2. React Components
+   - Chat interface
+   - Property display
+   - User management
+   - File upload
 
-2. **การประมวลผล**
-   - แปลงข้อความเป็นเวกเตอร์
-   - ค้นหาอสังหาริมทรัพย์ที่เกี่ยวข้อง
-   - สร้างคำตอบตามสไตล์ที่เลือก
-   - บันทึกประวัติการสนทนา
+## Contributing
+1. Fork the repository
+2. Create a feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a Pull Request
 
-3. **การส่งคำตอบ**
-   - ส่งคำตอบกลับไปยังผู้ใช้
-   - พร้อมข้อมูลอสังหาริมทรัพย์ที่เกี่ยวข้อง
-   - ตัวอย่างคำตอบ:
-     ```json
-     {
-       "response": "สำหรับคำถามเกี่ยวกับ 'ต้องการซื้อคอนโดใกล้ BTS' ทางเรามีข้อมูลอสังหาริมทรัพย์ที่น่าสนใจดังนี้...",
-       "session_id": "session_12345abcde",
-       "properties": [...]
-     }
-     ```
+## License
+This project is licensed under the MIT License.
 
-## 📝 License
-
-MIT License - ดูรายละเอียดเพิ่มเติมได้ที่ [LICENSE](./LICENSE)
-
-## 🤝 การมีส่วนร่วม
-
-1. Fork โปรเจค
-2. สร้าง branch ใหม่ (`git checkout -b feature/AmazingFeature`)
-3. Commit การเปลี่ยนแปลง (`git commit -m 'Add some AmazingFeature'`)
-4. Push ไปยัง branch (`git push origin feature/AmazingFeature`)
-5. เปิด Pull Request
-
-## 📞 การติดต่อ
-
-- Email: phattarapong.phe@spumail.net
-- Documentation: https://docs.chatai.com
+## Support
+For support, please open an issue in the repository or contact the development team.

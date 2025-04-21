@@ -730,7 +730,7 @@ export default function ChatInterface() {
       }
       
       // Create enhanced property descriptions if properties exist
-      let enhancedResponse = response.response;
+      const enhancedResponse = response.response;
       
       // Add AI response to messages
       const assistantMessage: Message = {
@@ -819,24 +819,39 @@ export default function ChatInterface() {
   // Display property information in a more structured way
   const renderPropertyCard = (property: Record<string, string>, index: number) => {
     const hasImage = property["รูป"] && property["รูป"] !== "ไม่มี";
+    const isEnglish = language === "english";
     
     return (
       <div key={index} className="bg-white dark:bg-slate-800 rounded-lg p-3 mb-2 shadow-sm border border-#43BE98/20">
         {property["โครงการ"] && (
-          <div className="font-medium text-#43BE98">{property["โครงการ"]}</div>
+          <div className="font-medium text-#43BE98">
+            {isEnglish ? property["project_en"] || property["โครงการ"] : property["โครงการ"]}
+          </div>
         )}
         <div className="grid grid-cols-2 gap-2 mt-1 text-sm">
           {property["ประเภท"] && (
-            <div><span className="text-slate-500">{translate("ประเภท", "Type", language)}:</span> {property["ประเภท"]}</div>
+            <div>
+              <span className="text-slate-500">{translate("ประเภท", "Type", language)}:</span>{" "}
+              {isEnglish ? property["type_en"] || property["ประเภท"] : property["ประเภท"]}
+            </div>
           )}
           {property["ราคา"] && (
-            <div><span className="text-slate-500">{translate("ราคา", "Price", language)}:</span> {property["ราคา"]} {translate("บาท", "THB", language)}</div>
+            <div>
+              <span className="text-slate-500">{translate("ราคา", "Price", language)}:</span>{" "}
+              {isEnglish ? property["price_en"] || property["ราคา"] : property["ราคา"]} {translate("บาท", "THB", language)}
+            </div>
           )}
           {property["รูปแบบ"] && (
-            <div><span className="text-slate-500">{translate("รูปแบบ", "Style", language)}:</span> {property["รูปแบบ"]}</div>
+            <div>
+              <span className="text-slate-500">{translate("รูปแบบ", "Style", language)}:</span>{" "}
+              {isEnglish ? property["style_en"] || property["รูปแบบ"] : property["รูปแบบ"]}
+            </div>
           )}
           {property["ตำแหน่ง"] && property["ตำแหน่ง"] !== "ไม่มี" && (
-            <div><span className="text-slate-500">{translate("ตำแหน่ง", "Location", language)}:</span> {property["ตำแหน่ง"]}</div>
+            <div>
+              <span className="text-slate-500">{translate("ตำแหน่ง", "Location", language)}:</span>{" "}
+              {isEnglish ? property["location_en"] || property["ตำแหน่ง"] : property["ตำแหน่ง"]}
+            </div>
           )}
         </div>
 
@@ -845,7 +860,7 @@ export default function ChatInterface() {
           <div className="mt-3 relative rounded-md overflow-hidden bg-gray-100 dark:bg-gray-700 aspect-video">
             <img 
               src={property["รูป"]} 
-              alt={property["โครงการ"] || "Property"} 
+              alt={isEnglish ? property["project_en"] || property["โครงการ"] : property["โครงการ"]} 
               className="w-full h-full object-cover transition-opacity duration-300 hover:opacity-95"
               onError={handleImageError}
               loading="lazy"
@@ -860,16 +875,28 @@ export default function ChatInterface() {
         {/* Amenities section - showing nearby facilities */}
         <div className="mt-2 text-sm grid grid-cols-2 gap-x-2 gap-y-1">
           {property["สถานศึกษา"] && property["สถานศึกษา"] !== "ไม่มี" && (
-            <div><span className="text-slate-500">{translate("สถานศึกษา", "Educational Institution", language)}:</span> {property["สถานศึกษา"]}</div>
+            <div>
+              <span className="text-slate-500">{translate("สถานศึกษา", "Educational Institution", language)}:</span>{" "}
+              {isEnglish ? property["educational_institution_en"] || property["สถานศึกษา"] : property["สถานศึกษา"]}
+            </div>
           )}
           {property["สถานีรถไฟฟ้า"] && property["สถานีรถไฟฟ้า"] !== "ไม่มี" && (
-            <div><span className="text-slate-500">{translate("สถานีรถไฟฟ้า", "Mass Transit", language)}:</span> {property["สถานีรถไฟฟ้า"]}</div>
+            <div>
+              <span className="text-slate-500">{translate("สถานีรถไฟฟ้า", "Mass Transit", language)}:</span>{" "}
+              {isEnglish ? property["bts_mrt_station_en"] || property["สถานีรถไฟฟ้า"] : property["สถานีรถไฟฟ้า"]}
+            </div>
           )}
           {property["ห้างสรรพสินค้า"] && property["ห้างสรรพสินค้า"] !== "ไม่มี" && (
-            <div><span className="text-slate-500">{translate("ห้างสรรพสินค้า", "Shopping Mall", language)}:</span> {property["ห้างสรรพสินค้า"]}</div>
+            <div>
+              <span className="text-slate-500">{translate("ห้างสรรพสินค้า", "Shopping Mall", language)}:</span>{" "}
+              {isEnglish ? property["shopping_mall_en"] || property["ห้างสรรพสินค้า"] : property["ห้างสรรพสินค้า"]}
+            </div>
           )}
           {property["โรงพยาบาล"] && property["โรงพยาบาล"] !== "ไม่มี" && (
-            <div><span className="text-slate-500">{translate("โรงพยาบาล", "Hospital", language)}:</span> {property["โรงพยาบาล"]}</div>
+            <div>
+              <span className="text-slate-500">{translate("โรงพยาบาล", "Hospital", language)}:</span>{" "}
+              {isEnglish ? property["hospital_en"] || property["โรงพยาบาล"] : property["โรงพยาบาล"]}
+            </div>
           )}
         </div>
       </div>

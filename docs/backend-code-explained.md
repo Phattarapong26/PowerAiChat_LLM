@@ -646,9 +646,15 @@ def cleanup_old_sessions(self):
 ```python
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
+    logger.error(f"Global error handler caught: {str(exc)}")
+    logger.error(traceback.format_exc())
+    
     return JSONResponse(
         status_code=500,
-        content={"message": "Internal server error", "detail": str(exc)}
+        content={
+            "detail": "Internal server error",
+            "message": str(exc)
+        }
     )
 ```
 
