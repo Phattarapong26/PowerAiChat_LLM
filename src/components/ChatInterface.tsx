@@ -338,6 +338,10 @@ export default function ChatInterface() {
   const { consultationStyle, language } = useContext(StyleContext);
   const { currentChatId, getChatSession, addMessageToChat } = useChats();
   const { id: chatIdFromUrl } = useParams();
+  const [isTyping, setIsTyping] = useState(false);
+  const [typingMessage, setTypingMessage] = useState("");
+  const [currentTypingIndex, setCurrentTypingIndex] = useState(-1);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
     scrollToBottom();
@@ -685,6 +689,30 @@ export default function ChatInterface() {
     return enhancedDescription;
   };
 
+  // เพิ่มฟังก์ชันสำหรับจำลองการพิมพ์
+  const simulateTyping = (text: string) => {
+    setIsTyping(true);
+    setTypingMessage("");
+    setCurrentTypingIndex(messages.length);
+    
+    let currentText = "";
+    const words = text.split(" ");
+    
+    const typeNextWord = () => {
+      if (words.length > 0) {
+        currentText += words.shift() + " ";
+        setTypingMessage(currentText);
+        setTimeout(typeNextWord, 100 + Math.random() * 200);
+      } else {
+        setIsTyping(false);
+        setTypingMessage("");
+        setCurrentTypingIndex(-1);
+      }
+    };
+    
+    typeNextWord();
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputValue.trim()) return;
@@ -699,6 +727,7 @@ export default function ChatInterface() {
     setMessages((prev) => [...prev, userMessage]);
     setInputValue("");
     setIsLoading(true);
+    setIsProcessing(true);
 
     try {
       // เพิ่มข้อความผู้ใช้ลงใน local state ก่อนเรียก API
@@ -718,12 +747,16 @@ export default function ChatInterface() {
         language: language
       });
       
+      setIsProcessing(false);
+      
+      // เริ่มจำลองการพิมพ์
+      simulateTyping(response.response);
+      
       // Save the chat room ID
       if (response.chat_room_id) {
         setChatRoomId(response.chat_room_id);
         localStorage.setItem("chatRoomId", response.chat_room_id);
       } else if (response.session_id) {
-        // รองรับกรณีที่ API ยังส่งกลับมาแบบเดิม
         const sessionId = response.session_id;
         setChatRoomId(sessionId);
         localStorage.setItem("chatRoomId", sessionId);
@@ -740,7 +773,10 @@ export default function ChatInterface() {
         properties: response.properties
       };
       
-      setMessages((prev) => [...prev, assistantMessage]);
+      // ไม่ต้องเพิ่มข้อความทันที รอให้การพิมพ์เสร็จก่อน
+      setTimeout(() => {
+        setMessages((prev) => [...prev, assistantMessage]);
+      }, enhancedResponse.split(" ").length * 150); // ประมาณเวลาที่ใช้ในการพิมพ์
       
       // เพิ่มข้อความ AI ลงใน local state (useChats) ด้วย
       if (chatRoomId) {
@@ -804,6 +840,7 @@ export default function ChatInterface() {
       ));
     } finally {
       setIsLoading(false);
+      setIsProcessing(false);
     }
   };
 
@@ -930,7 +967,9 @@ export default function ChatInterface() {
                       ? translate("คุณ", "You", language) 
                       : "Property AI Guru"}
                   </div>
-                  <div className="mt-1 whitespace-pre-line">{message.content}</div>
+                  <div className="mt-1 whitespace-pre-line">
+                    {message.content}
+                  </div>
                   
                   {/* Render properties if available */}
                   {message.properties && message.properties.length > 0 && (
@@ -947,6 +986,58 @@ export default function ChatInterface() {
               </div>
             </div>
           ))}
+          
+          {/* แสดงข้อความที่กำลังพิมพ์ */}
+          {isTyping && (
+            <div className="chat-message assistant-message">
+              <div className="flex items-start">
+                <div className="mr-2 flex-shrink-0 rounded-full bg-[#43BE98] p-1">
+                  <img 
+                    src="https://media.istockphoto.com/id/1060696342/vector/robot-icon-chat-bot-sign-for-support-service-concept-chatbot-character-flat-style.jpg?s=612x612&w=0&k=20&c=t9PsSDLowOAhfL1v683JMtWRDdF8w5CFsICqQvEvfzY=" 
+                    alt="AI" 
+                    className="h-8 w-8 rounded-full" 
+                  />
+                </div>
+                <div className="max-w-[85%]">
+                  <div className="text-sm font-medium">
+                    Property AI Guru
+                  </div>
+                  <div className="mt-1 whitespace-pre-line">
+                    {typingMessage}
+                    <span className="inline-block w-2 h-4 bg-[#43BE98] animate-pulse ml-1"></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+          
+          {/* แสดง loading indicator ระหว่างประมวลผล */}
+          {isProcessing && (
+            <div className="chat-message assistant-message">
+              <div className="flex items-start">
+                <div className="mr-2 flex-shrink-0 rounded-full bg-[#43BE98] p-1">
+                  <img 
+                    src="https://media.istockphoto.com/id/1060696342/vector/robot-icon-chat-bot-sign-for-support-service-concept-chatbot-character-flat-style.jpg?s=612x612&w=0&k=20&c=t9PsSDLowOAhfL1v683JMtWRDdF8w5CFsICqQvEvfzY=" 
+                    alt="AI" 
+                    className="h-8 w-8 rounded-full" 
+                  />
+                </div>
+                <div className="max-w-[85%]">
+                  <div className="text-sm font-medium">
+                    Property AI Guru
+                  </div>
+                  <div className="mt-1 whitespace-pre-line flex items-center">
+                    <div className="flex items-center space-x-1 ">
+                      <span className="w-2 h-2 bg-[#43BE98] rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                      <span className="w-2 h-2 bg-[#43BE98] rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                      <span className="w-2 h-2 bg-[#43BE98] rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+          
           <div ref={messagesEndRef} />
         </div>
         <form onSubmit={handleSubmit} className="p-4 border-t border-#43BE98/20 flex gap-2">

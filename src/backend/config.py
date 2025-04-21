@@ -10,7 +10,6 @@ MONGODB_DB = os.getenv("MONGODB_DB", "AI")
 MODEL_CONFIG = {
     'language_model': 'google/flan-t5-base',
     'embedding_model': 'sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2',
-    'translation_model': 'Helsinki-NLP/opus-mt-th-en'
 }
 
 # Available language options
@@ -25,12 +24,9 @@ CONSULTATION_STYLES = {
 }
 
 # Vector search configuration
-VECTOR_SIMILARITY_THRESHOLD = 0.1
-MAX_RESULTS = 5
+VECTOR_SIMILARITY_THRESHOLD = 0.8
+MAX_RESULTS = 3
 
-# API security
-API_KEY_NAME = "X-API-Key"
-API_KEY = os.getenv("API_KEY", "test_api_key")  # Default for development
 
 # File upload limits
 MAX_UPLOAD_SIZE = 5 * 1024 * 1024  # 5MB

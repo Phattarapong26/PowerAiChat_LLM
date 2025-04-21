@@ -1,192 +1,117 @@
-# โครงสร้างระบบ AI Property Consultant
+# สถาปัตยกรรมระบบ AI Property Consultant
 
-## 1. ภาพรวมสถาปัตยกรรม
+## ภาพรวมระบบ
 
-### 1.1 Frontend Layer
-- React + TypeScript
-- Vite
-- Tailwind CSS
-- Context API
-- Axios
+ระบบ AI Property Consultant ถูกออกแบบด้วยสถาปัตยกรรมแบบ Microservices ที่ประกอบด้วยส่วนหลักๆ ดังนี้:
 
-### 1.2 Backend Layer
-- FastAPI
-- Python 3.8+
-- MongoDB
-- Vector Search
-- Language Models
+### 1. Frontend (React + TypeScript)
+- ใช้ Next.js เป็น framework หลัก
+- ใช้ Tailwind CSS สำหรับ styling
+- ใช้ Zustand สำหรับ state management
+- ใช้ React Query สำหรับ data fetching
 
-### 1.3 Database Layer
-- MongoDB
-- Vector Store
-- Session Storage
-- User Management
+### 2. Backend (FastAPI + Python)
+- RESTful API สำหรับจัดการข้อมูล
+- WebSocket สำหรับการแชทแบบ real-time
+- Vector Database สำหรับการค้นหาอสังหาริมทรัพย์
+- Authentication และ Authorization
 
-## 2. องค์ประกอบหลัก
+### 3. ฐานข้อมูล
+- MongoDB สำหรับเก็บข้อมูลผู้ใช้และประวัติการแชท
+- Vector Database สำหรับเก็บ embeddings ของอสังหาริมทรัพย์
 
-### 2.1 Frontend Components
-1. **Chat Interface**
-   - Chat Window
-   - Message Display
-   - Input Controls
-   - Style Selector
+### 4. AI Components
+- LLM Integration สำหรับการตอบคำถาม
+- Vector Search สำหรับการค้นหาอสังหาริมทรัพย์
+- User Analysis สำหรับวิเคราะห์ความสนใจของผู้ใช้
 
-2. **Property Display**
-   - Property Cards
-   - Property Details
-   - Image Gallery
-   - Location Info
+## โครงสร้างไฟล์
 
-3. **User Management**
-   - Registration Form
-   - Login Interface
-   - Profile Management
-   - History Viewer
+```
+.
+├── frontend/
+│   ├── src/
+│   │   ├── components/     # React components
+│   │   ├── pages/         # Next.js pages
+│   │   ├── services/      # API services
+│   │   ├── store/         # Zustand store
+│   │   └── types/         # TypeScript types
+│   └── public/            # Static files
+├── backend/
+│   ├── app/
+│   │   ├── api/          # API endpoints
+│   │   ├── core/         # Core functionality
+│   │   ├── models/       # Data models
+│   │   └── services/     # Business logic
+│   └── tests/            # Test files
+└── docs/                 # Documentation
+```
 
-4. **File Upload**
-   - File Selection
-   - Progress Indicator
-   - Validation Display
-   - Status Updates
+## การสื่อสารระหว่าง Components
 
-### 2.2 Backend Services
-1. **FastAPI Application**
-   - API Endpoints
-   - Request Handling
-   - Response Generation
-   - Error Management
+1. **Frontend-Backend Communication**
+   - REST API สำหรับการจัดการข้อมูลทั่วไป
+   - WebSocket สำหรับการแชทแบบ real-time
+   - GraphQL สำหรับการ query ข้อมูลที่ซับซ้อน
 
-2. **Chat Processing**
-   - Message Analysis
-   - Context Management
-   - Response Generation
-   - Style Adaptation
+2. **Backend-Database Communication**
+   - MongoDB Driver สำหรับการจัดการข้อมูล
+   - Vector Database API สำหรับการค้นหา embeddings
 
-3. **Vector Search**
-   - Query Processing
-   - Similarity Calculation
-   - Result Ranking
-   - Property Matching
+3. **AI Integration**
+   - API calls ไปยัง LLM service
+   - Vector search สำหรับการค้นหาอสังหาริมทรัพย์
+   - User analysis สำหรับการวิเคราะห์ความสนใจ
 
-4. **User Services**
-   - Authentication
-   - Session Management
-   - Profile Handling
-   - History Tracking
+## Security
 
-### 2.3 Database Structure
-1. **Properties Collection**
-   ```json
-   {
-     "_id": "ObjectId",
-     "ประเภท": "string",
-     "โครงการ": "string",
-     "ราคา": "string",
-     "รูปแบบ": "string",
-     "ตำแหน่ง": "string",
-     "สถานศึกษา": "string",
-     "สถานีรถไฟฟ้า": "string",
-     "ห้างสรรพสินค้า": "string",
-     "โรงพยาบาล": "string"
-   }
-   ```
+1. **Authentication**
+   - JWT-based authentication
+   - OAuth 2.0 สำหรับ social login
+   - Session management
 
-2. **Users Collection**
-   ```json
-   {
-     "_id": "ObjectId",
-     "name": "string",
-     "email": "string",
-     "password": "string",
-     "created_at": "datetime",
-     "updated_at": "datetime"
-   }
-   ```
+2. **Authorization**
+   - Role-based access control
+   - Permission management
+   - API key management
 
-3. **Chat Rooms Collection**
-   ```json
-   {
-     "_id": "ObjectId",
-     "chat_room_id": "string",
-     "user_id": "string",
-     "messages": [
-       {
-         "role": "string",
-         "content": "string",
-         "timestamp": "number"
-       }
-     ],
-     "created_at": "datetime"
-   }
-   ```
+3. **Data Protection**
+   - Encryption at rest
+   - Secure communication (HTTPS)
+   - Input validation
 
-## 3. การทำงานร่วมกัน
+## Scalability
 
-### 3.1 การสื่อสารระหว่าง Layers
-1. **Frontend ↔ Backend**
-   - RESTful API
-   - HTTP Requests
-   - JSON Data Format
-   - Error Handling
+1. **Horizontal Scaling**
+   - Load balancing
+   - Database sharding
+   - Caching strategy
 
-2. **Backend ↔ Database**
-   - MongoDB Driver
-   - Connection Pooling
-   - Query Optimization
-   - Data Validation
+2. **Performance Optimization**
+   - CDN integration
+   - Database indexing
+   - Query optimization
 
-### 3.2 การจัดการข้อมูล
-1. **Data Flow**
-   - User Input → Frontend
-   - API Request → Backend
-   - Database Query → MongoDB
-   - Response → Frontend
-   - Display → User
+## Monitoring and Logging
 
-2. **State Management**
-   - Context API
-   - Local Storage
-   - Session Management
-   - Cache Control
+1. **System Monitoring**
+   - Health checks
+   - Performance metrics
+   - Error tracking
 
-## 4. การรักษาความปลอดภัย
+2. **Logging**
+   - Application logs
+   - Access logs
+   - Error logs
 
-### 4.1 Authentication
-- JWT Tokens
-- Session Management
-- Password Hashing
-- Access Control
+## Deployment
 
-### 4.2 Data Protection
-- HTTPS
-- API Key
-- Input Validation
-- XSS Prevention
+1. **Development**
+   - Docker containers
+   - Local development environment
+   - CI/CD pipeline
 
-## 5. การขยายระบบ
-
-### 5.1 Scalability
-- Horizontal Scaling
-- Load Balancing
-- Caching
-- Database Sharding
-
-### 5.2 Maintainability
-- Modular Design
-- Clean Architecture
-- Documentation
-- Version Control
-
-## 6. การติดตามและการแก้ไขปัญหา
-
-### 6.1 Monitoring
-- Error Logging
-- Performance Metrics
-- User Analytics
-- System Health
-
-### 6.2 Debugging
-- Error Tracking
-- Log Analysis
-- Performance Profiling
-- Issue Resolution 
+2. **Production**
+   - Kubernetes orchestration
+   - Auto-scaling
+   - Backup and recovery 
