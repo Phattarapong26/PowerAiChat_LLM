@@ -1,154 +1,170 @@
-# การวิเคราะห์ผู้ใช้
+# User Analysis Documentation
 
 ## ภาพรวม
 
-ระบบวิเคราะห์ผู้ใช้ (User Analysis) เป็นส่วนสำคัญที่ช่วยให้ระบบเข้าใจความต้องการของผู้ใช้ผ่านการวิเคราะห์ข้อความที่ผู้ใช้ป้อนเข้ามา โดยใช้การแยกประเภทอสังหาริมทรัพย์และตำแหน่งจากคำค้นหา เพื่อให้สามารถให้คำแนะนำที่เหมาะสมและเป็นส่วนตัวมากขึ้น
+ระบบวิเคราะห์ผู้ใช้ (User Analyzer) ถูกออกแบบมาเพื่อวิเคราะห์ความสนใจและความต้องการของผู้ใช้จากข้อความที่ส่งมา โดยใช้เทคนิค Vector Search และการแยกประเภทอสังหาริมทรัพย์และตำแหน่ง
 
-## องค์ประกอบหลัก
+## การวิเคราะห์ความสนใจ
 
-1. **การเก็บข้อมูลผู้ใช้**
-   - ข้อมูลพื้นฐาน (อายุ, เพศ, อาชีพ)
-   - ประวัติการค้นหา
-   - ประวัติการสนทนา
-   - ความสนใจและความชอบ
-   - พฤติกรรมการใช้งาน
-
-2. **การวิเคราะห์พฤติกรรม**
-   - การวิเคราะห์รูปแบบการค้นหา
-   - การวิเคราะห์ความสนใจ
-   - การวิเคราะห์ความต้องการ
-   - การวิเคราะห์การตัดสินใจ
-
-3. **การสร้างโปรไฟล์ผู้ใช้**
-   - โปรไฟล์พื้นฐาน
-   - โปรไฟล์ความสนใจ
-   - โปรไฟล์ความต้องการ
-   - โปรไฟล์การตัดสินใจ
-
-## การประมวลผลข้อมูล
-
-### การเก็บข้อมูล
+### 1. การแยกประเภทอสังหาริมทรัพย์
 ```python
-def collect_user_data(user_id: str) -> dict:
-    # เก็บข้อมูลจากแหล่งต่างๆ
-    user_data = {
-        "basic_info": get_basic_info(user_id),
-        "search_history": get_search_history(user_id),
-        "chat_history": get_chat_history(user_id),
-        "interests": get_user_interests(user_id),
-        "behavior": get_user_behavior(user_id)
+def _extract_property_type(self, query: str) -> str:
+    """
+    แยกประเภทอสังหาริมทรัพย์จากประโยคค้นหา
+    """
+    property_types = {
+        'กิจการ': ['กิจการ', 'ธุรกิจ', 'ร้าน', 'ร้านค้า', 'ร้านอาหาร', 'ร้านกาแฟ', 'ร้านเสริมสวย'],
+        'คอนโด': ['คอนโด', 'คอนโดมิเนียม', 'อพาร์ตเมนต์', 'ห้องชุด', 'ห้องพัก'],
+        'ทาวน์โฮม': ['ทาวน์โฮม', 'ทาวน์เฮ้าส์', 'บ้านแฝด', 'บ้านแถว'],
+        'ที่ดิน': ['ที่ดิน', 'ที่ว่าง', 'ที่เปล่า', 'ที่เปล่าเปล่า', 'ที่ดินเปล่า'],
+        'บ้าน': ['บ้าน', 'บ้านเดี่ยว', 'บ้านสองชั้น', 'บ้านชั้นเดียว', 'บ้านสไตล์'],
+        'ร้านค้า': ['ร้านค้า', 'ร้าน', 'ร้านขายของ', 'ร้านขายปลีก', 'ร้านค้าปลีก'],
+        'สำนักงาน': ['สำนักงาน', 'ออฟฟิศ', 'ที่ทำงาน', 'ห้องทำงาน'],
+        'โฮมออฟฟิศ': ['โฮมออฟฟิศ', 'บ้านสำนักงาน', 'บ้านออฟฟิศ', 'บ้านที่ทำงาน']
     }
-    return user_data
+    
+    query_lower = query.lower()
+    for prop_type, keywords in property_types.items():
+        if any(keyword in query_lower for keyword in keywords):
+            return prop_type
+    return ""
 ```
 
-### การวิเคราะห์พฤติกรรม
+### 2. การแยกตำแหน่ง
 ```python
-def analyze_user_behavior(user_data: dict) -> dict:
-    # วิเคราะห์พฤติกรรมผู้ใช้
-    analysis = {
-        "search_patterns": analyze_search_patterns(user_data["search_history"]),
-        "interests": analyze_interests(user_data["interests"]),
-        "needs": analyze_needs(user_data["chat_history"]),
-        "decision_making": analyze_decision_making(user_data["behavior"])
-    }
-    return analysis
+def _extract_location(self, query: str) -> str:
+    """
+    แยกตำแหน่งจากประโยคค้นหา
+    """
+    common_locations = [
+        'บางนา', 'สุขุมวิท', 'รัชดา', 'ลาดพร้าว', 'พระราม 9',
+        'สีลม', 'สาทร', 'ทองหล่อ', 'เอกมัย', 'อโศก',
+        'ราชดำริ', 'พร้อมพงษ์', 'ทองหล่อ', 'อ่อนนุช', 'บางกะปิ',
+        'ลาดกระบัง', 'มีนบุรี', 'บางแค', 'บางบอน', 'บางขุนเทียน'
+    ]
+    
+    words = query.split()
+    for word in words:
+        if word in common_locations:
+            return word
+    return ""
 ```
 
-### การสร้างโปรไฟล์
+### 3. การวิเคราะห์ความสนใจ
 ```python
-def create_user_profile(user_id: str) -> dict:
-    # สร้างโปรไฟล์ผู้ใช้
-    user_data = collect_user_data(user_id)
-    behavior_analysis = analyze_user_behavior(user_data)
-    
-    profile = {
-        "basic_profile": create_basic_profile(user_data["basic_info"]),
-        "interest_profile": create_interest_profile(behavior_analysis["interests"]),
-        "needs_profile": create_needs_profile(behavior_analysis["needs"]),
-        "decision_profile": create_decision_profile(behavior_analysis["decision_making"])
-    }
-    return profile
-```
+async def analyze_user_interests(self, query: str, consultation_style: str = "formal", language: str = "thai") -> Dict[str, Any]:
+    """
+    วิเคราะห์ความสนใจของผู้ใช้จากข้อความที่ส่งมา
+    """
+    try:
+        # ตรวจสอบว่ามี MongoDB manager และ session หรือไม่
+        if not hasattr(self, 'mongo_manager') or not hasattr(self, 'session'):
+            return {
+                "interests": [],
+                "location_preferences": [],
+                "budget_range": None,
+                "property_type": None,
+                "error": "Database connection not available"
+            }
 
-## การให้คำแนะนำ
+        # แยกประเภทอสังหาริมทรัพย์และตำแหน่งจากคำค้นหา
+        detected_property_type = self._extract_property_type(query)
+        detected_location = self._extract_location(query)
 
-### การสร้างคำแนะนำ
-```python
-def generate_recommendations(user_profile: dict) -> list[dict]:
-    # สร้างคำแนะนำตามโปรไฟล์ผู้ใช้
-    recommendations = []
-    
-    # คำแนะนำตามความสนใจ
-    interest_recs = get_interest_recommendations(user_profile["interest_profile"])
-    recommendations.extend(interest_recs)
-    
-    # คำแนะนำตามความต้องการ
-    needs_recs = get_needs_recommendations(user_profile["needs_profile"])
-    recommendations.extend(needs_recs)
-    
-    # คำแนะนำตามรูปแบบการตัดสินใจ
-    decision_recs = get_decision_recommendations(user_profile["decision_profile"])
-    recommendations.extend(decision_recs)
-    
-    return recommendations
-```
+        # ดึงข้อความจาก chat messages
+        chat_messages = await self.mongo_manager.get_chat_messages(
+            self.session,
+            query
+        )
 
-### การปรับแต่งคำแนะนำ
-```python
-def personalize_recommendations(recommendations: list[dict], user_profile: dict) -> list[dict]:
-    # ปรับแต่งคำแนะนำให้เหมาะสมกับผู้ใช้
-    personalized_recs = []
-    
-    for rec in recommendations:
-        # คำนวณคะแนนความเหมาะสม
-        score = calculate_relevance_score(rec, user_profile)
+        # สร้าง vector store สำหรับการค้นหา
+        vector_store = VectorStore()
+
+        # ดึงข้อมูล properties ทั้งหมด
+        properties = await self.mongo_manager.get_all_properties(self.session)
         
-        # ปรับแต่งรายละเอียด
-        personalized_rec = customize_recommendation(rec, user_profile)
-        personalized_rec["relevance_score"] = score
-        
-        personalized_recs.append(personalized_rec)
-    
-    # เรียงลำดับตามคะแนนความเหมาะสม
-    personalized_recs.sort(key=lambda x: x["relevance_score"], reverse=True)
-    
-    return personalized_recs
+        # แปลง ObjectId เป็น string สำหรับแต่ละ property
+        for prop in properties:
+            prop['_id'] = str(prop['_id'])
+
+        # เพิ่มข้อมูลลงใน vector store
+        vector_store.add_properties(properties)
+
+        # วิเคราะห์ความสนใจจากข้อความ
+        analysis = vector_store.analyze_interests(query)
+
+        # ปรับคะแนนความสนใจตามประเภทอสังหาริมทรัพย์ที่ตรวจพบ
+        if detected_property_type:
+            for interest in analysis["interests"]:
+                if interest["property"]["ประเภท"] == detected_property_type:
+                    interest["score"] *= 2.5  # เพิ่มคะแนนให้กับประเภทที่ตรงกับที่ผู้ใช้ต้องการ
+
+        # ปรับคะแนนความสนใจตามตำแหน่งที่ตรวจพบ
+        if detected_location:
+            for interest in analysis["interests"]:
+                if detected_location in interest["property"].get("ตำแหน่ง", ""):
+                    interest["score"] *= 2.0  # เพิ่มคะแนนให้กับตำแหน่งที่ตรงกับที่ผู้ใช้ต้องการ
+
+        # เรียงลำดับความสนใจใหม่ตามคะแนน
+        analysis["interests"].sort(key=lambda x: x["score"], reverse=True)
+
+        # เพิ่มข้อมูลประเภทอสังหาริมทรัพย์และตำแหน่งที่ตรวจพบ
+        analysis["detected_property_type"] = detected_property_type
+        analysis["detected_location"] = detected_location
+
+        return analysis
+
+    except Exception as e:
+        return {
+            "interests": [],
+            "location_preferences": [],
+            "budget_range": None,
+            "property_type": None,
+            "error": str(e)
+        }
 ```
 
-## การประเมินประสิทธิภาพ
+## การใช้งาน
 
-### เมตริกการประเมิน
-- **ความแม่นยำในการวิเคราะห์**: วัดความถูกต้องของการวิเคราะห์พฤติกรรม
-- **ความแม่นยำในการแนะนำ**: วัดความเหมาะสมของคำแนะนำ
-- **ความพึงพอใจของผู้ใช้**: วัดความพึงพอใจต่อคำแนะนำ
-- **อัตราการตอบสนอง**: วัดการตอบสนองต่อคำแนะนำ
-
-### การปรับปรุงประสิทธิภาพ
+### 1. การวิเคราะห์ความสนใจ
 ```python
-def improve_analysis_performance():
-    # ปรับปรุงโมเดลการวิเคราะห์
-    update_analysis_models()
-    
-    # ปรับปรุงการสร้างคำแนะนำ
-    update_recommendation_engine()
-    
-    # ปรับปรุงการปรับแต่ง
-    update_personalization_strategy()
+# สร้าง UserAnalyzer
+user_analyzer = UserAnalyzer(mongodb_manager)
+
+# วิเคราะห์ความสนใจ
+analysis = await user_analyzer.analyze_user_interests(
+    query="ต้องการคอนโดใกล้รถไฟฟ้าสีลม",
+    consultation_style="formal",
+    language="thai"
+)
+```
+
+### 2. การแยกประเภทและตำแหน่ง
+```python
+# แยกประเภทอสังหาริมทรัพย์
+property_type = user_analyzer._extract_property_type("ต้องการคอนโดใกล้รถไฟฟ้าสีลม")
+# ผลลัพธ์: "คอนโด"
+
+# แยกตำแหน่ง
+location = user_analyzer._extract_location("ต้องการคอนโดใกล้รถไฟฟ้าสีลม")
+# ผลลัพธ์: "สีลม"
 ```
 
 ## การบำรุงรักษา
 
-### การอัปเดตข้อมูล
-- อัปเดตข้อมูลผู้ใช้เป็นประจำ
-- ปรับปรุงโปรไฟล์ผู้ใช้
-- ทดสอบความถูกต้องของการวิเคราะห์
+### การอัปเดต
+- เพิ่มประเภทอสังหาริมทรัพย์ใหม่
+- เพิ่มตำแหน่งใหม่
+- ปรับปรุงการวิเคราะห์ความสนใจ
+- เพิ่มฟีเจอร์ใหม่
 
-### การตรวจสอบประสิทธิภาพ
-- ตรวจสอบความแม่นยำของการวิเคราะห์
-- ตรวจสอบความเหมาะสมของคำแนะนำ
-- ตรวจสอบความพึงพอใจของผู้ใช้
+### การตรวจสอบ
+- ตรวจสอบความถูกต้องของการวิเคราะห์
+- ติดตามประสิทธิภาพ
+- วิเคราะห์ข้อผิดพลาด
+- ตรวจสอบความแม่นยำ
 
-### การรักษาความปลอดภัย
-- ป้องกันข้อมูลส่วนตัว
-- เข้ารหัสข้อมูลที่สำคัญ
-- ควบคุมการเข้าถึงข้อมูล 
+### การสำรองข้อมูล
+- สำรองข้อมูลการวิเคราะห์
+- มีแผนกู้คืนเมื่อเกิดปัญหา
+- ทดสอบระบบเป็นประจำ 
