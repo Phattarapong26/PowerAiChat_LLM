@@ -1,116 +1,129 @@
-# AI Property Consultant
+# 🏠 AI Property Consultant
 
-## Overview
-AI Property Consultant is an intelligent chatbot system designed to provide real estate consultation services in both Thai and English languages. The system uses advanced natural language processing to understand user queries and provide relevant property information with adjustable conversation styles.
+<div align="center">
 
-## Features
-- Bilingual support (Thai/English)
-- Multiple consultation styles (Formal, Casual, Friendly, Professional)
-- Property search and recommendation
-- User authentication and session management
-- Chat history tracking
-- Property data management via file upload
-- MongoDB integration for data persistence
-- Vector-based semantic search
-- Empathetic response generation
+![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
+![License](https://img.shields.io/badge/license-MIT-green.svg)
+![Python](https://img.shields.io/badge/python-3.8+-blue.svg)
+![Node](https="img.shields.io/badge/node-16+-green.svg)
 
-## Tech Stack
-- Frontend: React + TypeScript + Vite
-- Backend: FastAPI + Python
-- Database: MongoDB
-- UI Framework: Tailwind CSS
-- State Management: React Context
-- API Integration: Axios
+ระบบที่ปรึกษาอสังหาริมทรัพย์อัจฉริยะ ที่ให้บริการทั้งภาษาไทยและอังกฤษ
 
-## System Requirements
+[เริ่มต้นใช้งาน](#installation) • [คุณสมบัติ](#features) • [เอกสาร](#documentation) • [ติดต่อเรา](#support)
+
+</div>
+
+## 📋 ภาพรวม
+AI Property Consultant เป็นระบบ chatbot อัจฉริยะที่ออกแบบมาเพื่อให้บริการที่ปรึกษาด้านอสังหาริมทรัพย์ทั้งภาษาไทยและอังกฤษ ระบบใช้เทคโนโลยีการประมวลผลภาษาธรรมชาติขั้นสูงในการทำความเข้าใจคำถามของผู้ใช้และให้ข้อมูลอสังหาริมทรัพย์ที่เกี่ยวข้อง พร้อมทั้งสามารถปรับรูปแบบการสนทนาได้ตามต้องการ
+
+## ✨ คุณสมบัติ
+- 🌐 รองรับ 2 ภาษา (ไทย/อังกฤษ)
+- 🎭 รูปแบบการให้คำปรึกษาหลากหลาย (ทางการ, สบายๆ, เป็นมิตร, มืออาชีพ)
+- 🔍 ค้นหาและแนะนำอสังหาริมทรัพย์
+- 👤 ระบบยืนยันตัวตนและจัดการเซสชัน
+- 📝 บันทึกประวัติการสนทนา
+- 📤 จัดการข้อมูลอสังหาริมทรัพย์ผ่านการอัปโหลดไฟล์
+- 💾 เชื่อมต่อกับ MongoDB สำหรับจัดเก็บข้อมูล
+- 🔎 ค้นหาเชิงความหมายด้วย Vector
+- 💝 สร้างคำตอบที่เข้าใจความรู้สึก
+
+## 🛠 เทคโนโลยีที่ใช้
+- **Frontend:** React + TypeScript + Vite
+- **Backend:** FastAPI + Python
+- **ฐานข้อมูล:** MongoDB
+- **UI Framework:** Tailwind CSS
+- **การจัดการ State:** React Context
+- **การเชื่อมต่อ API:** Axios
+
+## ⚙️ ความต้องการของระบบ
 - Node.js 16+
 - Python 3.8+
 - MongoDB 4.4+
-- npm or yarn package manager
+- npm หรือ yarn
 
-## Installation
+## 🚀 การติดตั้ง
 
-### Backend Setup
-1. Navigate to the backend directory:
+### การติดตั้ง Backend
+1. เข้าไปที่โฟลเดอร์ backend:
 ```bash
 cd src/backend
 ```
 
-2. Create a virtual environment:
+2. สร้าง virtual environment:
 ```bash
 python -m venv venv
-source venv/bin/activate  # For Unix
-venv\Scripts\activate     # For Windows
+source venv/bin/activate  # สำหรับ Unix
+venv\Scripts\activate     # สำหรับ Windows
 ```
 
-3. Install dependencies:
+3. ติดตั้ง dependencies:
 ```bash
 pip install -r requirements.txt
 ```
 
-4. Configure MongoDB:
-- Create a `.env` file in the backend directory
-- Add MongoDB connection string:
+4. ตั้งค่า MongoDB:
+- สร้างไฟล์ `.env` ในโฟลเดอร์ backend
+- เพิ่ม connection string:
 ```
 MONGODB_URL=mongodb://localhost:27017/AI
 MONGODB_DB=AI
 ```
 
-### Frontend Setup
-1. Install dependencies:
+### การติดตั้ง Frontend
+1. ติดตั้ง dependencies:
 ```bash
 npm install
-# or
+# หรือ
 yarn install
 ```
 
-2. Configure environment:
-Create `.env` file in the root directory:
+2. ตั้งค่าสภาพแวดล้อม:
+สร้างไฟล์ `.env` ในโฟลเดอร์หลัก:
 ```
 VITE_API_URL=http://localhost:8000
 ```
 
-## Running the Application
+## 🏃‍♂️ การใช้งาน
 
-### Start Backend Server
+### เริ่ม Backend Server
 ```bash
 cd src/backend
 uvicorn main:app --reload
 ```
 
-### Start Frontend Development Server
+### เริ่ม Frontend Development Server
 ```bash
 npm run dev
-# or
+# หรือ
 yarn dev
 ```
 
-## API Endpoints
+## 📡 API Endpoints
 
 ### Chat API
-- POST `/api/chat`
-  - Process user queries and return property recommendations
-  - Supports conversation style and language selection
+- `POST /api/chat`
+  - ประมวลผลคำถามผู้ใช้และส่งคืนคำแนะนำเกี่ยวกับอสังหาริมทรัพย์
+  - รองรับการเลือกรูปแบบการสนทนาและภาษา
 
-### User Management
-- POST `/api/register`
-  - User registration
-- POST `/api/login`
-  - User authentication
+### การจัดการผู้ใช้
+- `POST /api/register`
+  - ลงทะเบียนผู้ใช้
+- `POST /api/login`
+  - ยืนยันตัวตนผู้ใช้
 
-### Data Management
-- POST `/api/upload`
-  - Upload property data via CSV/Excel
-- GET `/api/styles`
-  - Get available consultation styles
+### การจัดการข้อมูล
+- `POST /api/upload`
+  - อัปโหลดข้อมูลอสังหาริมทรัพย์ผ่าน CSV/Excel
+- `GET /api/styles`
+  - ดึงรูปแบบการให้คำปรึกษาที่มีอยู่
 
-### Chat History
-- POST `/api/save_history`
-  - Save chat history
-- GET `/api/chat` (with get_history=true)
-  - Retrieve chat history
+### ประวัติการสนทนา
+- `POST /api/save_history`
+  - บันทึกประวัติการสนทนา
+- `GET /api/chat` (with get_history=true)
+  - ดึงประวัติการสนทนา
 
-## Project Structure
+## 📁 โครงสร้างโปรเจค
 ```
 .
 ├── src/
@@ -129,48 +142,54 @@ yarn dev
 └── README.md
 ```
 
-## Key Components
+## 🔧 องค์ประกอบหลัก
 
 ### Backend Components
-1. FastAPI Application (`main.py`)
-   - API endpoints and request handling
-   - Chat processing and response generation
-   - File upload handling
+1. **FastAPI Application** (`main.py`)
+   - API endpoints และการจัดการคำขอ
+   - การประมวลผลการสนทนาและการสร้างคำตอบ
+   - การจัดการการอัปโหลดไฟล์
 
-2. MongoDB Manager (`mongodb_manager.py`)
-   - Database operations
-   - Session management
-   - User data handling
+2. **MongoDB Manager** (`mongodb_manager.py`)
+   - การดำเนินการกับฐานข้อมูล
+   - การจัดการเซสชัน
+   - การจัดการข้อมูลผู้ใช้
 
-3. Language Models (`language_models.py`)
-   - Response generation
-   - Multi-language support
-   - Consultation style management
+3. **Language Models** (`language_models.py`)
+   - การสร้างคำตอบ
+   - รองรับหลายภาษา
+   - การจัดการรูปแบบการให้คำปรึกษา
 
-4. Vector Store (`vector_store.py`)
-   - Semantic search implementation
-   - Property matching
+4. **Vector Store** (`vector_store.py`)
+   - การค้นหาเชิงความหมาย
+   - การจับคู่อสังหาริมทรัพย์
 
 ### Frontend Components
-1. API Integration (`api.ts`)
-   - Backend communication
-   - Request/response handling
+1. **API Integration** (`api.ts`)
+   - การสื่อสารกับ Backend
+   - การจัดการคำขอ/คำตอบ
 
-2. React Components
-   - Chat interface
-   - Property display
-   - User management
-   - File upload
+2. **React Components**
+   - หน้าต่างการสนทนา
+   - การแสดงผลอสังหาริมทรัพย์
+   - การจัดการผู้ใช้
+   - การอัปโหลดไฟล์
 
-## Contributing
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
+## 🤝 การมีส่วนร่วม
+1. Fork โปรเจค
+2. สร้าง feature branch
+3. Commit การเปลี่ยนแปลง
+4. Push ไปยัง branch
+5. สร้าง Pull Request
 
-## License
-This project is licensed under the MIT License.
+## 📄 ลิขสิทธิ์
+โปรเจคนี้ได้รับลิขสิทธิ์ภายใต้ MIT License
 
-## Support
-For support, please open an issue in the repository or contact the development team.
+## 📞 การสนับสนุน
+สำหรับการสนับสนุน กรุณาเปิด issue ใน repository หรือติดต่อทีมพัฒนา
+
+---
+
+<div align="center">
+Made with ❤️ by AI Property Consultant Team
+</div>
