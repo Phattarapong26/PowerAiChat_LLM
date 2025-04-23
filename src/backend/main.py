@@ -15,6 +15,7 @@ import random
 import json
 from mongodb_manager import MongoDBManager
 from vector_store import VectorStore
+from language_models import LanguageModelManager
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
@@ -335,21 +336,14 @@ def generate_ai_response(query: str, properties: List[Dict[str, Any]], consultat
                 return "เข้าใจว่าคุณกำลังมองหาสิ่งพิเศษค่ะ "
 
     if not properties:
-        if language == "english":
-            no_results_responses = {
-                "formal": "I understand your specific requirements, and I apologize that I couldn't find any properties matching your criteria at the moment. Would you like to explore different options?",
-                "casual": "I know this might be disappointing, but I couldn't find anything matching that right now. Want to try something else?",
-                "friendly": "Oh no! 😔 I really wanted to help you find the perfect place, but I couldn't find anything matching your criteria yet. Let's try something else! What kind of property are you dreaming of? 😊",
-                "professional": "I acknowledge your specific requirements, however, after a thorough search, I couldn't find properties matching your criteria. Would you like to explore alternative options or refine your parameters?"
-            }
-        else:
-            no_results_responses = {
-                "formal": "ดิฉันเข้าใจความต้องการของท่าน และต้องขออภัยที่ยังไม่พบอสังหาริมทรัพย์ที่ตรงตามเงื่อนไข ต้องการลองดูตัวเลือกอื่นไหมคะ?",
-                "casual": "เข้าใจว่าอาจจะผิดหวังนิดหน่อย ที่ยังไม่เจอที่ถูกใจ อยากลองหาแบบอื่นดูมั้ย?",
-                "friendly": "อุ๊ย! ขอโทษนะคะ 😔 อยากจะช่วยหาที่ที่ใช่ให้คุณจริงๆ เลย แต่ยังไม่เจอที่ตรงใจ มาลองดูอย่างอื่นกันไหมคะ? คุณกำลังมองหาแบบไหนอยู่คะ? 😊",
-                "professional": "ผมเข้าใจความต้องการเฉพาะของท่าน อย่างไรก็ตาม จากการค้นหาอย่างละเอียด ยังไม่พบอสังหาริมทรัพย์ที่ตรงตามเกณฑ์ ต้องการให้ช่วยหาตัวเลือกอื่น หรือปรับเงื่อนไขการค้นหาไหมครับ?"
-            }
-        return no_results_responses.get(consultation_style, no_results_responses["formal"])
+        # Initialize language model manager
+        language_model = LanguageModelManager()
+        
+        # Generate response using Flan-T5 model
+        prompt = f"Generate a {consultation_style} response in Thai for a property consultant when no properties match the user's requirements. The response should be empathetic and suggest alternative options."
+        inputs = language_model.tokenizer(prompt, return_tensors="pt", max_length=512, truncation=True)
+        outputs = language_model.model.generate(**inputs, max_length=200)
+        return language_model.tokenizer.decode(outputs[0], skip_special_tokens=True)
 
     # สร้าง response templates ตาม style และภาษา
     if language == "english":
@@ -517,12 +511,15 @@ async def chat(query: PropertyQuery):
         relevant_properties = vector_search(query.query, language=query.language or "thai")
         formatted_properties = format_property_response(relevant_properties)
         
+        # Initialize language model manager
+        language_model = LanguageModelManager()
+        
         # Generate AI response
-        response = generate_ai_response(
-            query.query, 
-            formatted_properties, 
-            query.consultation_style,
-            query.language or "thai"  # ถ้าไม่ระบุภาษาให้ใช้ภาษาไทยเป็นค่าเริ่มต้น
+        response = language_model.generate_response(
+            query=query.query,
+            properties=formatted_properties,
+            style=query.consultation_style,
+            context=None
         )
         
         # บันทึกข้อความลงในประวัติการสนทนา

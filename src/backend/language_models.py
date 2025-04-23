@@ -1,6 +1,6 @@
-
 import logging
 from typing import Dict, Any, List
+from transformers import T5Tokenizer, T5ForConditionalGeneration
 from config import MODEL_CONFIG, CONSULTATION_STYLES
 
 logger = logging.getLogger(__name__)
@@ -9,12 +9,41 @@ class LanguageModelManager:
     def __init__(self):
         """
         Manages language model interactions for the AI property consultant
-        
-        In production, this would connect to actual language models.
-        For this demo, we'll use templates.
         """
         self.model_config = MODEL_CONFIG
-        logger.info(f"Initialized LanguageModelManager with config: {MODEL_CONFIG}")
+        self.tokenizer = T5Tokenizer.from_pretrained("google/flan-t5-base")
+        self.model = T5ForConditionalGeneration.from_pretrained("google/flan-t5-base")
+        logger.info("Initialized LanguageModelManager with Flan-T5 model")
+        
+    def generate_fallback_response(self, query: str, style: str) -> str:
+        """
+        Generate fallback response using Flan-T5 model
+        """
+        try:
+            prompt = f"""
+            คุณเป็นที่ปรึกษาอสังหาริมทรัพย์ที่พูดภาษาไทย
+            ลูกค้าถามว่า: {query}
+            แต่เราไม่พบอสังหาริมทรัพย์ที่ตรงตามเงื่อนไข
+            กรุณาตอบในรูปแบบ {style} โดยแสดงความเห็นอกเห็นใจและแนะนำทางเลือกอื่น
+            """
+            inputs = self.tokenizer(prompt, return_tensors="pt", max_length=512, truncation=True)
+            outputs = self.model.generate(**inputs, max_length=200, num_beams=4, temperature=0.7)
+            response = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
+            
+            if not response.strip():
+                # ถ้ายังว่างเปล่าอีก ให้ใช้ fallback แบบ hardcoded
+                fallback_responses = {
+                    "formal": "ขออภัยครับ ทางเราไม่พบข้อมูลอสังหาริมทรัพย์ที่ตรงกับคำถาม กรุณาลองใช้คำค้นหาอื่น หรือติดต่อเจ้าหน้าที่เพื่อขอข้อมูลเพิ่มเติม",
+                    "casual": "เราไม่เจอข้อมูลที่คุณถาม ลองถามใหม่ด้วยคำอื่นได้นะ หรือจะติดต่อเจ้าหน้าที่ก็ได้ครับ",
+                    "friendly": "อุ๊ย! ขอโทษนะคะ ยังไม่เจอที่ตรงใจเลย ลองถามใหม่แบบอื่นไหมคะ หรือจะคุยกับพนักงานของเราโดยตรงก็ได้นะคะ",
+                    "professional": "ผมขอแจ้งว่าไม่พบข้อมูลอสังหาริมทรัพย์ที่ตรงตามเงื่อนไขในระบบ ผมแนะนำให้ปรับเปลี่ยนคำค้นหา หรือหากต้องการความช่วยเหลือเพิ่มเติม สามารถติดต่อทีมงานมืออาชีพของเราได้ครับ"
+                }
+                return fallback_responses.get(style, fallback_responses["formal"])
+            
+            return response
+        except Exception as e:
+            logger.error(f"Error generating fallback response: {str(e)}")
+            return "ขออภัย เกิดข้อผิดพลาดในการประมวลผลคำตอบ กรุณาลองใหม่อีกครั้ง"
         
     def generate_response(self, 
                           query: str, 
@@ -27,13 +56,22 @@ class LanguageModelManager:
         try:
             # Check if we found any properties
             if not properties:
-                responses = {
-                    "formal": f"ขออภัยครับ ทางเราไม่พบข้อมูลอสังหาริมทรัพย์ที่ตรงกับคำถาม '{query}' กรุณาลองใช้คำค้นหาอื่น หรือติดต่อเจ้าหน้าที่เพื่อขอข้อมูลเพิ่มเติม",
-                    "casual": f"เราไม่เจอข้อมูลที่คุณถามเกี่ยวกับ '{query}' ลองถามใหม่ด้วยคำอื่นได้นะ หรือจะติดต่อเจ้าหน้าที่ก็ได้ครับ",
-                    "friendly": f"โอ้! ดูเหมือนว่าเรายังไม่มีข้อมูลเกี่ยวกับ '{query}' เลย ลองถามใหม่แบบอื่นไหมคะ หรือจะคุยกับพนักงานของเราโดยตรงก็ได้นะคะ",
-                    "professional": f"ผมขอแจ้งว่าไม่พบข้อมูลอสังหาริมทรัพย์ที่ตรงตามเงื่อนไข '{query}' ในระบบ ผมแนะนำให้ปรับเปลี่ยนคำค้นหา หรือหากต้องการความช่วยเหลือเพิ่มเติม สามารถติดต่อทีมงานมืออาชีพของเราได้ครับ"
-                }
-                return responses.get(style, responses["formal"])
+                prompt = f"""
+                คุณเป็นที่ปรึกษาอสังหาริมทรัพย์ที่พูดภาษาไทย
+                ลูกค้าถามว่า: {query}
+                แต่เราไม่พบอสังหาริมทรัพย์ที่ตรงตามเงื่อนไข
+                กรุณาตอบในรูปแบบ {style} โดยแสดงความเห็นอกเห็นใจและแนะนำทางเลือกอื่น
+                """
+                inputs = self.tokenizer(prompt, return_tensors="pt", max_length=512, truncation=True)
+                outputs = self.model.generate(**inputs, max_length=200, num_beams=4, temperature=0.7)
+                response = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
+                
+                # ตรวจสอบว่าคำตอบไม่ว่างเปล่า
+                if not response.strip():
+                    logger.warning("Empty response from model, using fallback response")
+                    return self.generate_fallback_response(query, style)
+                
+                return response
             
             # Create property description based on the data
             property_descriptions = []
@@ -69,24 +107,26 @@ class LanguageModelManager:
             
             property_text = "\n".join(property_descriptions)
             
-            intros = {
-                "formal": f"สำหรับคำถามเกี่ยวกับ '{query}' ทางเรามีข้อมูลอสังหาริมทรัพย์ที่น่าสนใจดังนี้:\n\n",
-                "casual": f"เกี่ยวกับ '{query}' ที่คุณถามมา เรามีตัวเลือกเหล่านี้นะ:\n\n",
-                "friendly": f"สำหรับ '{query}' ที่คุณสนใจ มีตัวเลือกน่าสนใจเหล่านี้เลยค่ะ:\n\n",
-                "professional": f"ตามที่คุณสอบถามเกี่ยวกับ '{query}' ผมได้คัดสรรอสังหาริมทรัพย์ที่ตรงกับความต้องการของคุณดังนี้:\n\n"
-            }
+            prompt = f"""
+            คุณเป็นที่ปรึกษาอสังหาริมทรัพย์ที่พูดภาษาไทย
+            ลูกค้าถามว่า: {query}
             
-            outros = {
-                "formal": "\n\nท่านสนใจทรัพย์สินรายการใดเป็นพิเศษหรือไม่ ทางเรายินดีให้ข้อมูลเพิ่มเติมครับ",
-                "casual": "\n\nสนใจตัวไหนเป็นพิเศษมั้ย จะได้บอกรายละเอียดเพิ่มเติมให้",
-                "friendly": "\n\nชอบตัวไหนเป็นพิเศษบ้างคะ บอกได้เลยนะ เดี๋ยวเราช่วยดูข้อมูลเพิ่มให้ค่ะ",
-                "professional": "\n\nหากคุณสนใจอสังหาริมทรัพย์รายการใดเป็นพิเศษ ผมสามารถให้ข้อมูลเชิงลึกและจัดการดูพื้นที่จริงให้ได้ครับ"
-            }
+            คุณพบอสังหาริมทรัพย์ที่ตรงตามเงื่อนไขดังนี้:
+            {property_text}
             
-            intro = intros.get(style, intros["formal"])
-            outro = outros.get(style, outros["formal"])
+            กรุณาตอบในรูปแบบ {style} โดยแนะนำอสังหาริมทรัพย์เหล่านี้ให้ลูกค้า
+            """
             
-            return intro + property_text + outro
+            inputs = self.tokenizer(prompt, return_tensors="pt", max_length=512, truncation=True)
+            outputs = self.model.generate(**inputs, max_length=200, num_beams=4, temperature=0.7)
+            response = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
+            
+            # ตรวจสอบว่าคำตอบไม่ว่างเปล่า
+            if not response.strip():
+                logger.warning("Empty response from model, using fallback response")
+                return self.generate_fallback_response(query, style)
+            
+            return response
             
         except Exception as e:
             logger.error(f"Error generating response: {str(e)}")
@@ -94,10 +134,10 @@ class LanguageModelManager:
             
     def translate(self, text: str, target_language: str = "en") -> str:
         """
-        Translate text between Thai and English
-        
-        This would use an actual translation model in production
+        Translate text between Thai and English using Flan-T5
         """
         logger.info(f"Translation requested to {target_language}")
-        # Mock implementation
-        return f"[Translated to {target_language}]: {text}"
+        prompt = f"Translate the following text to {target_language}: {text}"
+        inputs = self.tokenizer(prompt, return_tensors="pt", max_length=512, truncation=True)
+        outputs = self.model.generate(**inputs, max_length=200, num_beams=4, temperature=0.7)
+        return self.tokenizer.decode(outputs[0], skip_special_tokens=True)
