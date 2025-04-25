@@ -16,6 +16,7 @@ import json
 from mongodb_manager import MongoDBManager
 from vector_store import VectorStore
 from language_models import LanguageModelManager
+# Thai only: ใช้ Llama-3.2-1B สำหรับทุกการ generate
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
@@ -25,7 +26,7 @@ logger = logging.getLogger(__name__)
 app = FastAPI(title="AI Property Consultant API")
 
 # Configure CORS
-app.add_middleware(
+app.add_middleware
     CORSMiddleware,
     allow_origins=["*"],  # Allows all origins in development
     allow_credentials=True,
@@ -35,6 +36,8 @@ app.add_middleware(
 
 # Initialize MongoDB manager
 mongodb_manager = MongoDBManager()
+# Thai only: สร้าง instance ของ Llama-3.2-1B LanguageModelManager
+model_manager = LanguageModelManager()
 
 # Create models for request/response
 class PropertyQuery(BaseModel):

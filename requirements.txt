@@ -1,0 +1,8 @@
+transformers>=4.36.0
+torch>=2.1.0
+# ควรติดตั้ง sentence-transformers ถ้าใช้ embedding
+sentence-transformers>=2.2.2
+fastapi
+uvicorn
+pydantic
+pandas

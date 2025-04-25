@@ -7,8 +7,9 @@ MONGODB_URL = os.getenv("MONGODB_URL", "mongodb://localhost:27017/AI")
 MONGODB_DB = os.getenv("MONGODB_DB", "AI")
 
 # Language model configuration
+# Thai only
 MODEL_CONFIG = {
-    'language_model': 'google/flan-t5-base',
+    'language_model': 'meta-llama/Llama-3.2-1B',
     'embedding_model': 'sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2',
 }
 
